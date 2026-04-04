@@ -1,0 +1,177 @@
+.booking-details-container {
+  padding: 30px;
+  background: #f4f8ff;
+  min-height: 100vh;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  margin: 0 0 8px;
+  font-family: "Outfit", sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #0d6efd;
+}
+
+.page-subtitle {
+  margin: 0;
+  color: #5f6f8a;
+  font-size: 15px;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: #0d6efd;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.back-btn:hover {
+  background: #0b5ed7;
+  transform: translateY(-1px);
+}
+
+.patient-summary-card,
+.table-wrapper {
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(13, 49, 120, 0.08);
+}
+
+.patient-summary-card {
+  padding: 22px;
+  margin-bottom: 22px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.summary-item {
+  padding: 14px;
+  border-radius: 12px;
+  background: #f8fbff;
+  border: 1px solid #e1ebff;
+}
+
+.summary-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6a7a95;
+}
+
+.summary-value {
+  display: block;
+  color: #183153;
+  font-size: 15px;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.table-wrapper {
+  padding: 20px;
+  overflow-x: auto;
+}
+
+.booking-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.booking-table thead {
+  background: #e7f0ff;
+}
+
+.booking-table th {
+  padding: 14px;
+  text-align: left;
+  color: #0d6efd;
+  font-weight: 700;
+}
+
+.booking-table td {
+  padding: 14px;
+  border-bottom: 1px solid #edf2fb;
+  color: #243b5a;
+  vertical-align: top;
+}
+
+.booking-table tbody tr:hover {
+  background: #f7faff;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.status-confirmed {
+  background: #ddf7e9;
+  color: #157347;
+}
+
+.status-pending {
+  background: #fff3cd;
+  color: #997404;
+}
+
+.status-cancelled {
+  background: #f8d7da;
+  color: #b42318;
+}
+
+.status-cancelled-by-user {
+  background: #ffe7cc;
+  color: #b54708;
+}
+
+.status-completed {
+  background: #d7f0ff;
+  color: #0b5cab;
+}
+
+.empty-state {
+  text-align: center;
+  color: #6a7a95;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .booking-details-container {
+    padding: 20px;
+  }
+
+  .table-wrapper {
+    padding: 14px;
+  }
+
+  .booking-table {
+    font-size: 14px;
+  }
+}

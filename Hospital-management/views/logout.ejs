@@ -1,0 +1,12 @@
+<div class="container d-flex justify-content-center align-items-center vh-100">
+  <div class="login-card text-center">
+    <h3 class="logout-heading mb-3">Logout</h3>
+    <p class="mb-4">Are you sure you want to log out?</p>
+
+    <form method="POST" action="/admin/logout" class="d-grid gap-2">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="btn btn-danger">Logout</button>
+      <a href="/admin/appoinment" class="btn btn-outline-primary">Cancel</a>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,39 @@
+import { useEffect, useState } from "react";
+import { Box, CircularProgress } from "@mui/material";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import api from "../utils/api";
+import { API_BASE } from "../utils/config";
+
+export default function ProtectedRoute() {
+  const loc = useLocation();
+  const [status, setStatus] = useState("checking");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    api
+      .get(`${API_BASE}/users/session`)
+      .then(() => {
+        if (isMounted) setStatus("authenticated");
+      })
+      .catch(() => {
+        if (isMounted) setStatus("unauthenticated");
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [loc.pathname]);
+
+  if (status === "checking") {
+    return (
+      <Box sx={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  return status === "authenticated"
+    ? <Outlet />
+    : <Navigate to="/login" replace state={{ from: loc }} />;
+}

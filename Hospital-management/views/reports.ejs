@@ -1,0 +1,33 @@
+<div class="reports-container">
+  <h1 class="page-title reports-heading">Reports</h1>
+
+  <div class="table-wrapper">
+    <table class="reports-table">
+      <thead>
+        <tr>
+          <th>S.No</th>
+          <th>Doctor Name</th>
+          <th>Department</th>
+          <th>Bookings This Month</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% if (doctors && doctors.length) { %>
+          <% doctors.forEach(function(doctor, index) { %>
+            <tr>
+              <td><%= index + 1 %></td>
+              <td><%= doctor.name %></td>
+              <td><%= doctor.department %></td>
+              <td><%= doctor.bookingCount || 0 %> bookings</td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="4">No booking data available yet.</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>

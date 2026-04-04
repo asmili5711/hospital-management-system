@@ -1,0 +1,113 @@
+/* Page layout */
+.doctors-container {
+  padding: 30px;
+  background-color: #f4f8ff;
+  min-height: 100vh;
+}
+
+/* Page title */
+.page-title {
+  font-family: "Outfit", sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  margin-bottom: 25px;
+  color: #0d6efd;
+}
+
+/* Table wrapper */
+.table-wrapper {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* Table */
+.doctors-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+}
+
+/* Table header */
+.doctors-table thead {
+  background-color: #e7f0ff;
+}
+
+.doctors-table th {
+  padding: 14px;
+  text-align: left;
+  color: #0d6efd;
+  font-weight: 600;
+}
+
+/* Table rows */
+.doctors-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #eee;
+}
+
+/* Hover effect */
+.doctors-table tbody tr {
+  transition: background-color 0.25s ease,
+              box-shadow 0.25s ease,
+              transform 0.15s ease;
+}
+
+.doctors-table tbody tr:hover {
+  background-color: #eef4ff;
+  box-shadow: inset 0 0 0 1px #d0e2ff;
+  transform: scale(1.01);
+  cursor: pointer;
+}
+
+/* Buttons (shared) */
+.btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Edit button */
+.edit-btn {
+  background-color: #0d6efd;
+  color: #ffffff;
+}
+
+.edit-btn:hover {
+  background-color: #0b5ed7;
+}
+
+/* Delete button */
+.delete-btn {
+  background-color: #dc3545;
+  color: #ffffff;
+}
+
+.delete-btn:hover {
+  background-color: #bb2d3b;
+}
+
+/* Action bar */
+.action-bar {
+  margin-top: 20px;
+  text-align: right;
+}
+
+/* Add doctor button */
+.add-btn {
+  display: inline-block;
+  background-color: #198754;
+  color: #ffffff;
+  text-decoration: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.add-btn:hover {
+  background-color: #157347;
+}

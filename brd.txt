@@ -1,0 +1,88 @@
+Business Requirements Document (BRD)
+Project Name: Hospital Booking Website
+Client: MashupStack
+Date:
+
+1. Project Overview
+
+The Hospital Booking Website is a full-stack application designed to manage doctor
+appointments efficiently. The system is divided into two parts:
+
+     User Side (React Frontend): Enables patients to register, log in, view doctor profiles,
+         book appointments, and manage their bookings in a user-friendly interface.
+
+     Admin Side (Backend Framework): Allows hospital administrators to manage
+         appointments, doctors, and users via a secure backend portal.
+
+2. Scope of Work
+
+2.1 In Scope
+User Functionality (React Frontend):
+
+     User registration and authentication
+     View doctor list with detailed profile
+     Book appointments
+     View and cancel upcoming appointments
+     View past appointments
+     Update password
+
+Admin Functionality (Backend Framework):
+     Admin login
+     Appointment management
+     Doctor profile management
+     User profile and appointment history management
+     Reporting (e.g., most viewed doctor)
+
+3. Functional Requirements
+
+3.1 User Functionality
+User Authentication
+
+     User Registration:
+               Fields: Name, Email, Date of Birth (DOB), Gender, Address, Contact Number,
+                   Password
+
+     User Login:
+               Credentials: Email and Password
+
+Doctor Directory
+     After logging in, users can view a list of available doctors,
+
+Appointment Booking
+     Book an appointment by selecting:
+               Appointment Date
+     Receive booking confirmation
+
+My Appointments
+     View Past Appointments
+     View Upcoming Appointments
+     Cancel upcoming appointments if needed
+
+Profile Management
+     Users can update Password
+
+3.2 Admin Functionality
+Admin Authentication
+
+     Admin Login with Email and Password
+
+Appointment Management
+     View list of today's appointments
+     Filter appointments by:
+               Date
+
+Doctor Management
+     Add, edit, delete, and view doctor profiles
+
+User Management
+     View all registered users
+     View user profile details and full appointment history
+
+Reports
+     Generate a report of most viewed doctors (monthly)
+
+4. Non-Functional Requirements
+ Usability: Clean and responsive UI for both user and admin portals
+ Performance: Fast load times with support for moderate concurrent traffic
+ Security: User data encryption, secure login, and access control
+ Scalability: Easily extensible for future enhancements or integrations

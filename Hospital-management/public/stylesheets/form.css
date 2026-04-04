@@ -1,0 +1,21 @@
+ body {
+      background-color: #f4f6f8;
+    }
+
+    .form-card {
+      max-width: 500px;
+      margin: auto;
+      margin-top: 50px;
+      padding: 25px;
+      background-color: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-heading {
+      font-family: "Poppins", sans-serif;
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      color: #0d6efd;
+    }

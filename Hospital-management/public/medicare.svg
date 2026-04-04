@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Medicare logo">
+  <defs>
+    <linearGradient id="medicareGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2f6fd1" />
+      <stop offset="100%" stop-color="#63b3ff" />
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="52" height="52" rx="16" fill="url(#medicareGradient)" />
+  <path
+    d="M21 33h7v-7h8v7h7v8h-7v7h-8v-7h-7z"
+    fill="#ffffff"
+  />
+</svg>

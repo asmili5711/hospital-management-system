@@ -1,0 +1,80 @@
+<div class="booking-details-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Booking Details</h1>
+      <p class="page-subtitle">Individual booking details for <strong><%= patient.name %></strong>.</p>
+    </div>
+    <a href="/admin/user_management" class="back-btn">
+      <i class="fa-solid fa-arrow-left"></i>
+      Back to User Management
+    </a>
+  </div>
+
+  <div class="patient-summary-card">
+    <div class="summary-grid">
+      <div class="summary-item">
+        <span class="summary-label">Name</span>
+        <span class="summary-value"><%= patient.name || 'N/A' %></span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Email</span>
+        <span class="summary-value"><%= patient.email || 'N/A' %></span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Phone</span>
+        <span class="summary-value"><%= patient.phone || 'N/A' %></span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Age</span>
+        <span class="summary-value"><%= patient.age || 'N/A' %></span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Gender</span>
+        <span class="summary-value"><%= patient.gender || 'N/A' %></span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Address</span>
+        <span class="summary-value"><%= patient.address || 'N/A' %></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="booking-table">
+      <thead>
+        <tr>
+          <th>S.No</th>
+          <th>Doctor Name</th>
+          <th>Department</th>
+          <th>Appointment Date</th>
+          <th>Reason</th>
+          <th>Status</th>
+          <th>Booked On</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (appointments && appointments.length) { %>
+          <% appointments.forEach((appointment, index) => { %>
+            <tr>
+              <td><%= index + 1 %></td>
+              <td><%= appointment.doctorName %></td>
+              <td><%= appointment.department %></td>
+              <td><%= appointment.date ? new Date(appointment.date).toLocaleString('en-IN') : 'N/A' %></td>
+              <td><%= appointment.reason || 'No reason provided' %></td>
+              <td>
+                <span class="status-badge status-<%= String(appointment.status || '').toLowerCase().replace(/\s+/g, '-') %>">
+                  <%= appointment.status || 'N/A' %>
+                </span>
+              </td>
+              <td><%= appointment.createdAt ? new Date(appointment.createdAt).toLocaleDateString('en-IN') : 'N/A' %></td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="7" class="empty-state">This user has no booking records.</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>

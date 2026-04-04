@@ -1,0 +1,46 @@
+<div class="doctors-container">
+  <h1 class="page-title">Doctors Management</h1>
+
+  <div class="table-wrapper">
+    <table class="doctors-table">
+      <thead>
+        <tr>
+          <th>Doctor Name</th>
+          <th>Department</th>
+          <th>Edit</th>
+          <th>Delete</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% if (doctors && doctors.length) { %>
+          <% doctors.forEach((doctor) => { %>
+            <tr>
+              <td><%= doctor.name %></td>
+              <td><%= doctor.department %></td>
+              <td>
+                <a class="btn edit-btn" href="/admin/doctors/<%= doctor._id %>/edit">Edit</a>
+              </td>
+              <td>
+                <form method="POST" action="/admin/doctors/<%= doctor._id %>/delete" onsubmit="return confirm('Delete this doctor?');">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <button class="btn delete-btn" type="submit">Delete</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="4">No doctors found.</td>
+          </tr>
+        <% } %>
+
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add doctor button -->
+  <div class="action-bar">
+    <a href="/admin/form" class="btn add-btn">+ Add Doctor</a>
+  </div>
+</div>

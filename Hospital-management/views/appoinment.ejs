@@ -1,0 +1,112 @@
+<div class="reports-container">
+  <h1 class="page-title appointment-heading">Appointments</h1>
+  <% const queryParams = []; %>
+  <% if (selectedDate) { queryParams.push(`date=${encodeURIComponent(selectedDate)}`); } %>
+  <% if (viewFilter && viewFilter !== 'all') { queryParams.push(`view=${encodeURIComponent(viewFilter)}`); } %>
+  <% if (statusFilter && statusFilter !== 'all') { queryParams.push(`status=${encodeURIComponent(statusFilter)}`); } %>
+  <% const returnTo = queryParams.length ? `/admin/appoinment?${queryParams.join('&')}` : '/admin/appoinment'; %>
+
+  <div class="filter-bar">
+    <form method="GET" action="/admin/appoinment" class="filter-form">
+      <label for="viewFilter">View:</label>
+      <select id="viewFilter" name="view">
+        <option value="all" <%= viewFilter === 'all' ? 'selected' : '' %>>All</option>
+        <option value="upcoming" <%= viewFilter === 'upcoming' ? 'selected' : '' %>>Upcoming</option>
+        <option value="past" <%= viewFilter === 'past' ? 'selected' : '' %>>Past</option>
+      </select>
+
+      <label for="statusFilter">Status:</label>
+      <select id="statusFilter" name="status">
+        <option value="all" <%= statusFilter === 'all' ? 'selected' : '' %>>All</option>
+        <option value="pending" <%= statusFilter === 'pending' ? 'selected' : '' %>>Pending</option>
+        <option value="confirmed" <%= statusFilter === 'confirmed' ? 'selected' : '' %>>Confirmed</option>
+        <option value="completed" <%= statusFilter === 'completed' ? 'selected' : '' %>>Completed</option>
+        <option value="cancelled" <%= statusFilter === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+      </select>
+
+      <label for="dateFilter">Search by date:</label>
+      <input id="dateFilter" type="date" name="date" value="<%= selectedDate || '' %>">
+      <button type="submit" class="filter-btn">Search</button>
+      <a href="/admin/appoinment" class="clear-btn">Clear</a>
+    </form>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="reports-table">
+      <thead>
+        <tr>
+          <th>S.No</th>
+          <th>Patient Name</th>
+          <th>Doctor Name</th>
+          <th>Department</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% if (appointments && appointments.length) { %>
+          <% appointments.forEach(function(appt, index) { %>
+            <tr>
+              <td><%= index + 1 %></td>
+              <td><%= appt.patientName %></td>
+              <td><%= appt.doctorName %></td>
+              <td><%= appt.department %></td>
+              <td><%= new Date(appt.date).toLocaleDateString('en-IN') %></td>
+              <td>
+                <span class="status-badge status-<%= String(appt.status).toLowerCase().replace(/\s+/g, '-') %>">
+                  <%= appt.status %>
+                </span>
+              </td>
+              <td>
+                <% if (appt.canAdminApprove || appt.canAdminCancel || appt.canAdminComplete) { %>
+                  <div class="action-group">
+                    <% if (appt.canAdminApprove) { %>
+                      <form method="POST" action="/admin/appointments/<%= appt.patientId %>/<%= appt.id %>/status">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <input type="hidden" name="status" value="Confirmed">
+                        <input type="hidden" name="returnTo" value="<%= returnTo %>">
+                        <button type="submit" class="action-btn approve-btn">
+                          Approve
+                        </button>
+                      </form>
+                    <% } %>
+
+                    <% if (appt.canAdminCancel) { %>
+                      <form method="POST" action="/admin/appointments/<%= appt.patientId %>/<%= appt.id %>/status">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <input type="hidden" name="status" value="Cancelled">
+                        <input type="hidden" name="returnTo" value="<%= returnTo %>">
+                        <button type="submit" class="action-btn cancel-btn">
+                          Cancel
+                        </button>
+                      </form>
+                    <% } %>
+
+                    <% if (appt.canAdminComplete) { %>
+                      <form method="POST" action="/admin/appointments/<%= appt.patientId %>/<%= appt.id %>/status">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <input type="hidden" name="status" value="Completed">
+                        <input type="hidden" name="returnTo" value="<%= returnTo %>">
+                        <button type="submit" class="action-btn complete-btn">
+                          Mark Completed
+                        </button>
+                      </form>
+                    <% } %>
+                  </div>
+                <% } else { %>
+                  <span class="muted-label"><%= appt.isUpcoming ? 'Locked' : 'Past' %></span>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="7">No appointments found.</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
