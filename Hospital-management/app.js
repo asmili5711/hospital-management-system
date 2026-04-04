@@ -60,7 +60,7 @@ app.use(
       console.warn(
         `Blocked CORS origin: ${origin}. Allowed origins: ${allowedFrontendOrigins.join(', ')}`
       );
-      return callback(new Error('CORS origin not allowed'));
+      return callback(null, false);
     },
     credentials: true
   })
