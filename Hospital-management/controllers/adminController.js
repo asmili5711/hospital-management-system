@@ -11,9 +11,11 @@ const {
   ADMIN_AUTH_COOKIE,
   ADMIN_LOGIN_PATH,
   ADMIN_APPOINMENT_PATH,
-  SERVER_BOOT_ID
+  SERVER_BOOT_ID,
+  getAdminAuthCookieOptions
 } = require('../config/adminAuth');
 const { getAdminTokenFromRequest, clearAdminAuthCookie } = require('../middleware/adminAuth');
+const { uploadDoctorImage, removeCloudinaryImage } = require('../utils/cloudinary');
 const {
   validateAdminLoginPayload,
   validateAdminPasswordChangePayload,
@@ -42,9 +44,19 @@ const invalidCredentialsResponse = (res, emailValue = '') =>
 const isBcryptHash = (password = '') =>
   password.startsWith('$2a$') || password.startsWith('$2b$') || password.startsWith('$2y$');
 
-const getUploadedImagePath = (file) => {
-  if (!file || !file.filename) return '';
-  return `/images/${file.filename}`;
+const getUploadedImageDetails = async (file) => {
+  if (!file) {
+    return {
+      image: '',
+      imagePublicId: ''
+    };
+  }
+
+  const uploadResult = await uploadDoctorImage(file);
+  return {
+    image: uploadResult.imageUrl,
+    imagePublicId: uploadResult.imagePublicId
+  };
 };
 
 const removeDoctorImageIfLocal = (imagePath) => {
@@ -61,6 +73,20 @@ const removeDoctorImageIfLocal = (imagePath) => {
       console.error('Error removing doctor image file:', error);
     }
   });
+};
+
+const removeDoctorImageAsset = async ({ imagePath, imagePublicId }) => {
+  if (imagePublicId) {
+    try {
+      await removeCloudinaryImage(imagePublicId);
+      return;
+    } catch (error) {
+      console.error('Error removing doctor image from Cloudinary:', error);
+      return;
+    }
+  }
+
+  removeDoctorImageIfLocal(imagePath);
 };
 
 const getSafeReturnTo = (returnTo) => {
@@ -255,12 +281,7 @@ exports.login = async (req, res) => {
       { expiresIn: '8h' }
     );
 
-    res.cookie(ADMIN_AUTH_COOKIE, token, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 8 * 60 * 60 * 1000
-    });
+    res.cookie(ADMIN_AUTH_COOKIE, token, getAdminAuthCookieOptions());
 
     return res.redirect(ADMIN_APPOINMENT_PATH);
   } catch (error) {
@@ -282,7 +303,7 @@ exports.showLogout = (req, res) =>
   });
 
 exports.logout = (req, res) => {
-  res.clearCookie(ADMIN_AUTH_COOKIE);
+  clearAdminAuthCookie(res);
   return res.redirect(ADMIN_LOGIN_PATH);
 };
 
@@ -675,8 +696,19 @@ exports.createDoctor = async (req, res, next) => {
     }
 
     const { name, department, age, experience, description } = validation.data;
+    let uploadedImage = '';
+    let uploadedImagePublicId = '';
 
-    const uploadedImage = getUploadedImagePath(req.file);
+    if (req.file) {
+      try {
+        const uploadedImageDetails = await getUploadedImageDetails(req.file);
+        uploadedImage = uploadedImageDetails.image;
+        uploadedImagePublicId = uploadedImageDetails.imagePublicId;
+      } catch (uploadError) {
+        console.error('Error uploading doctor image:', uploadError);
+        return res.redirect('/admin/form?uploadError=upload_failed');
+      }
+    }
 
     await Doctor.create({
       name: String(name).trim(),
@@ -684,6 +716,7 @@ exports.createDoctor = async (req, res, next) => {
       age: Number(age),
       experience: experience === undefined || experience === null || experience === '' ? 0 : Number(experience),
       image: uploadedImage,
+      imagePublicId: uploadedImagePublicId,
       description: String(description).trim()
     });
 
@@ -742,8 +775,21 @@ exports.updateDoctor = async (req, res, next) => {
       return res.status(404).render('error', { message: 'Doctor not found', error: {} });
     }
 
-    const uploadedImage = getUploadedImagePath(req.file);
+    let uploadedImage = '';
+    let uploadedImagePublicId = '';
+    if (req.file) {
+      try {
+        const uploadedImageDetails = await getUploadedImageDetails(req.file);
+        uploadedImage = uploadedImageDetails.image;
+        uploadedImagePublicId = uploadedImageDetails.imagePublicId;
+      } catch (uploadError) {
+        console.error('Error uploading doctor image:', uploadError);
+        return res.redirect(`/admin/doctors/${doctorId}/edit?uploadError=upload_failed`);
+      }
+    }
+
     const imagePath = uploadedImage || existingDoctor.image || '';
+    const imagePublicId = uploadedImagePublicId || existingDoctor.imagePublicId || '';
 
     await Doctor.findByIdAndUpdate(
       doctorId,
@@ -754,11 +800,19 @@ exports.updateDoctor = async (req, res, next) => {
           age: Number(age),
           experience: experience === undefined || experience === null || experience === '' ? 0 : Number(experience),
           image: imagePath,
+          imagePublicId,
           description: String(description).trim()
         }
       },
       { new: true }
     );
+
+    if (uploadedImage) {
+      await removeDoctorImageAsset({
+        imagePath: existingDoctor.image,
+        imagePublicId: existingDoctor.imagePublicId
+      });
+    }
 
     return res.redirect('/admin/doctors_management');
   } catch (error) {
@@ -776,7 +830,10 @@ exports.deleteDoctor = async (req, res, next) => {
       return res.status(404).render('error', { message: 'Doctor not found', error: {} });
     }
 
-    removeDoctorImageIfLocal(doctor.image);
+    await removeDoctorImageAsset({
+      imagePath: doctor.image,
+      imagePublicId: doctor.imagePublicId
+    });
     return res.redirect('/admin/doctors_management');
   } catch (error) {
     console.error('Error deleting doctor:', error);

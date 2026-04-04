@@ -6,6 +6,8 @@
     "start": "node ./bin/www",
     "migrate:admin-passwords": "node ./scripts/migrateAdminPasswords.js",
     "migrate:remove-doctor-booking-count": "node ./scripts/removeDoctorBookingCount.js",
+    "migrate:doctor-images": "node ./scripts/migrateDoctorImagesToCloudinary.js",
+    "migrate:atlas": "node ./scripts/migrateLocalToAtlas.js",
     "test": "jest --runInBand"
   },
   "jest": {
@@ -16,6 +18,7 @@
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cloudinary": "^2.9.0",
     "cookie-parser": "~1.4.4",
     "cors": "^2.8.6",
     "csurf": "^1.11.0",

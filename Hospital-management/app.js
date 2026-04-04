@@ -38,10 +38,19 @@ app.use(
   })
 );
 
+const allowedFrontendOrigins = String(process.env.FRONTEND_ORIGIN || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 //cors
 app.use(
   cors({
-    origin: process.env.FRONTEND_ORIGIN,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedFrontendOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error('CORS origin not allowed'));
+    },
     credentials: true
   })
 );

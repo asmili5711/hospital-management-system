@@ -21,6 +21,10 @@ const doctorSchema = new mongoose.Schema({
   image: {
     type: String   // image URL or file path
   },
+  imagePublicId: {
+    type: String,
+    trim: true
+  },
   description: {
     type: String,
     required: true,

@@ -6,13 +6,14 @@ const doctorUpload = require('../middleware/doctorUpload');
 const { requireAdminAuth } = require('../middleware/adminAuth');
 const adminController = require('../controllers/adminController');
 const { adminLoginLimiter } = require('../middleware/rateLimit');
+const { getCookieSameSite, getCookieSecure } = require('../config/adminAuth');
 
 const adminCsrfProtection = csurf({
   cookie: {
     key: 'admin_csrf_secret',
     httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production'
+    sameSite: getCookieSameSite(),
+    secure: getCookieSecure()
   },
   value: (req) => {
     if (req.body && typeof req.body._csrf === 'string') return req.body._csrf;

@@ -1,9 +1,5 @@
-const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
-
-const uploadDir = path.join(__dirname, '..', 'public', 'images');
-fs.mkdirSync(uploadDir, { recursive: true });
 
 const ALLOWED_TYPES = new Map([
   ['image/jpeg', ['.jpg', '.jpeg']],
@@ -123,14 +119,8 @@ const persistValidatedFile = async (file) => {
     throw error;
   }
 
-  const filename = buildFilename(detectedType.ext);
-  const destinationPath = path.join(uploadDir, filename);
-  await fs.promises.writeFile(destinationPath, file.buffer);
-
-  file.filename = filename;
-  file.path = destinationPath;
+  file.filename = buildFilename(detectedType.ext);
   file.detectedMime = detectedType.mime;
-  delete file.buffer;
 };
 
 const single = (fieldName) => (req, res, next) => {

@@ -2,7 +2,8 @@ const jwt = require('jsonwebtoken');
 const {
   ADMIN_AUTH_COOKIE,
   ADMIN_LOGIN_PATH,
-  SERVER_BOOT_ID
+  SERVER_BOOT_ID,
+  getAdminAuthCookieBaseOptions
 } = require('../config/adminAuth');
 
 function getAdminTokenFromRequest(req) {
@@ -14,7 +15,7 @@ function getAdminTokenFromRequest(req) {
 }
 
 const clearAdminAuthCookie = (res) => {
-  res.clearCookie(ADMIN_AUTH_COOKIE);
+  res.clearCookie(ADMIN_AUTH_COOKIE, getAdminAuthCookieBaseOptions());
 };
 
 const requireAdminAuth = (req, res, next) => {

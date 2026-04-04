@@ -1,10 +1,7 @@
-const fs = require('fs');
-const path = require('path');
 const express = require('express');
 const request = require('supertest');
 
 const doctorUpload = require('../middleware/doctorUpload');
-const uploadDir = path.join(__dirname, '..', 'public', 'images');
 
 describe('doctor upload middleware', () => {
   test('rejects disguised non-image content', async () => {
@@ -63,7 +60,5 @@ describe('doctor upload middleware', () => {
     expect(response.body.hasFile).toBe(true);
     expect(response.body.detectedMime).toBe('image/avif');
     expect(response.body.filename).toMatch(/\.avif$/);
-
-    await fs.promises.unlink(path.join(uploadDir, response.body.filename));
   });
 });
