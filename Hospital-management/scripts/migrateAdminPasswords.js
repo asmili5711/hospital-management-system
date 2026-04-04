@@ -12,7 +12,7 @@ const isBcryptHash = (password = '') =>
   BCRYPT_PREFIXES.some((prefix) => password.startsWith(prefix));
 
 async function migrateAdminPasswords() {
-  const mongoUri = process.env.MONGODB_URI || DEFAULT_MONGODB_URI;
+  const mongoUri = process.env.TARGET_MONGODB_URI || process.env.MONGODB_URI || DEFAULT_MONGODB_URI;
   await mongoose.connect(mongoUri);
 
   try {

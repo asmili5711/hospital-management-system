@@ -38,9 +38,16 @@ app.use(
   })
 );
 
+const normalizeOrigin = (origin = '') =>
+  String(origin)
+    .trim()
+    .replace(/^['"]|['"]$/g, '')
+    .replace(/\/+$/, '')
+    .toLowerCase();
+
 const allowedFrontendOrigins = String(process.env.FRONTEND_ORIGIN || '')
   .split(',')
-  .map((origin) => origin.trim())
+  .map((origin) => normalizeOrigin(origin))
   .filter(Boolean);
 
 //cors
@@ -48,7 +55,11 @@ app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
-      if (allowedFrontendOrigins.includes(origin)) return callback(null, true);
+      const normalizedOrigin = normalizeOrigin(origin);
+      if (allowedFrontendOrigins.includes(normalizedOrigin)) return callback(null, true);
+      console.warn(
+        `Blocked CORS origin: ${origin}. Allowed origins: ${allowedFrontendOrigins.join(', ')}`
+      );
       return callback(new Error('CORS origin not allowed'));
     },
     credentials: true

@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node ./bin/www",
     "migrate:admin-passwords": "node ./scripts/migrateAdminPasswords.js",
+    "reset:admin-password": "node ./scripts/resetAdminPassword.js",
     "migrate:remove-doctor-booking-count": "node ./scripts/removeDoctorBookingCount.js",
     "migrate:doctor-images": "node ./scripts/migrateDoctorImagesToCloudinary.js",
     "migrate:atlas": "node ./scripts/migrateLocalToAtlas.js",
