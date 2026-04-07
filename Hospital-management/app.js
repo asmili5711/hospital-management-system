@@ -88,6 +88,10 @@ app.use(
 app.use('/', indexRouter);
 app.use('/admin', adminRouter);
 app.use('/users', usersRouter);
+// API aliases for reverse-proxy deployments (Netlify/Vite) that prefix requests with /api.
+app.use('/api', indexRouter);
+app.use('/api/admin', adminRouter);
+app.use('/api/users', usersRouter);
 
 app.use(function(err, req, res, next) {
   if (err.code !== 'EBADCSRFTOKEN') {
