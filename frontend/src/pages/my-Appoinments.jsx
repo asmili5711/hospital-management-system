@@ -30,7 +30,6 @@ const spin = keyframes`
 `;
 
 export default function MyAppoinments() {
-  const MIN_LOAD_MS = 1400; // ensure loader/animation is visible a bit longer
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -38,7 +37,6 @@ export default function MyAppoinments() {
   const [activeFilter, setActiveFilter] = useState("Upcoming");
 
   const fetchAppointments = () => {
-    const startedAt = Date.now();
     setLoading(true);
     setError("");
     api
@@ -50,11 +48,7 @@ export default function MyAppoinments() {
         const message = err.response?.data?.message || "Failed to load appointments";
         setError(message);
       })
-      .finally(() => {
-        const elapsed = Date.now() - startedAt;
-        const remaining = Math.max(0, MIN_LOAD_MS - elapsed);
-        setTimeout(() => setLoading(false), remaining);
-      });
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {

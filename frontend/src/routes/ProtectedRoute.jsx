@@ -23,7 +23,7 @@ export default function ProtectedRoute() {
     return () => {
       isMounted = false;
     };
-  }, [loc.pathname]);
+  }, []);
 
   if (status === "checking") {
     return (
