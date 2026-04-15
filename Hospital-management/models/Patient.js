@@ -55,6 +55,18 @@ const patientSchema = new mongoose.Schema({
     minlength: 6,
     select: false
   },
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+  emailVerificationTokenHash: {
+    type: String,
+    select: false
+  },
+  emailVerificationExpiresAt: {
+    type: Date,
+    select: false
+  },
   isBlocked: {
     type: Boolean,
     default: false

@@ -1,6 +1,6 @@
 import { Box, TextField, Button, Typography, Paper, Alert } from "@mui/material";
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import api from "../utils/api";
 import { API_BASE } from "../utils/config";
 
@@ -8,12 +8,50 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const verificationStatus = params.get("verification");
+    const prefilledEmail = params.get("email");
+
+    if (prefilledEmail) {
+      setEmail(prefilledEmail);
+    }
+
+    if (verificationStatus === "success") {
+      setSuccessMessage("Email verified successfully. You can now log in.");
+      setError("");
+      return;
+    }
+
+    if (verificationStatus === "failed") {
+      const reason = params.get("reason");
+      setSuccessMessage("");
+      setError(
+        reason === "missing_token"
+          ? "Verification link is incomplete. Please use the full email link."
+          : "Verification link is invalid or expired. Please request a new verification email."
+      );
+      return;
+    }
+
+    if (params.get("registered") === "1") {
+      setSuccessMessage("Registration successful. Please check your email and verify your account before logging in.");
+      setError("");
+      return;
+    }
+
+    setSuccessMessage("");
+  }, [location.search]);
 
   const handleLogin = (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMessage("");
     setLoading(true);
 
     if (!email.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)) {
@@ -74,6 +112,11 @@ export default function Login() {
           sx={{ display: "flex", flexDirection: "column", gap: 3 }}
           onSubmit={handleLogin}
         >
+          {successMessage && (
+            <Alert severity="success" sx={{ mb: 1 }}>
+              {successMessage}
+            </Alert>
+          )}
           {error && (
             <Alert severity="error" sx={{ mb: 1 }}>
               {error}

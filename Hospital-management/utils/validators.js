@@ -99,6 +99,16 @@ const validateUserLoginPayload = (body = {}) => {
   return pass({ email, password });
 };
 
+const validateEmailAddressPayload = (body = {}) => {
+  const email = normalizeWhitespace(body.email).toLowerCase();
+
+  if (!validateEmail(email)) {
+    return fail('Please provide a valid email address');
+  }
+
+  return pass({ email });
+};
+
 const validateBookingPayload = (body = {}) => {
   const doctorId = normalizeWhitespace(body.doctorId);
   const reason = body.reason === undefined ? '' : normalizeWhitespace(body.reason);
@@ -267,6 +277,7 @@ module.exports = {
   validateAdminPasswordChangePayload,
   validateBookingPayload,
   validateDoctorPayload,
+  validateEmailAddressPayload,
   validateProfileUpdatePayload,
   validateUserLoginPayload,
   validateUserPasswordChangePayload,

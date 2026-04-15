@@ -16,6 +16,7 @@ const mockClearAdminAuthCookie = jest.fn((res) => {
 });
 const mockJwtSign = jest.fn(() => 'admin-jwt-token');
 const mockJwtVerify = jest.fn();
+const mockSendVerificationEmail = jest.fn();
 
 jest.mock('../database/db', () => ({}));
 
@@ -89,6 +90,10 @@ jest.mock('jsonwebtoken', () => ({
   verify: (...args) => mockJwtVerify(...args)
 }));
 
+jest.mock('../utils/mailer', () => ({
+  sendVerificationEmail: (...args) => mockSendVerificationEmail(...args)
+}));
+
 const app = require('../app');
 
 const extractCsrfToken = (html) => {
@@ -108,6 +113,7 @@ describe('critical backend flows', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetAdminTokenFromRequest.mockReturnValue(null);
+    mockSendVerificationEmail.mockResolvedValue(undefined);
   });
 
   test('user login sets the auth cookie', async () => {
@@ -119,7 +125,8 @@ describe('critical backend flows', () => {
       age: 25,
       gender: 'Male',
       address: 'Test Address',
-      password: '$2b$10$hashed'
+      password: '$2b$10$hashed',
+      isEmailVerified: true
     };
 
     mockPatientFindOne.mockReturnValue({
@@ -141,6 +148,90 @@ describe('critical backend flows', () => {
       expect.arrayContaining([expect.stringContaining('user_auth_token=session-token')])
     );
     expect(mockCreateUserSession).toHaveBeenCalledWith(patient._id);
+  });
+
+  test('user login rejects accounts with unverified emails', async () => {
+    const patient = {
+      _id: '507f1f77bcf86cd799439011',
+      name: 'Test User',
+      email: 'user@example.com',
+      password: '$2b$10$hashed',
+      isEmailVerified: false
+    };
+
+    mockPatientFindOne.mockReturnValue({
+      select: jest.fn().mockResolvedValue(patient)
+    });
+    mockBcryptCompare.mockResolvedValue(true);
+
+    const response = await request(app)
+      .post('/users/login')
+      .send({ email: 'user@example.com', password: 'secret123' });
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({
+      success: false,
+      message: 'Please verify your email before logging in'
+    });
+    expect(mockCreateUserSession).not.toHaveBeenCalled();
+  });
+
+  test('email verification marks the account as verified and redirects to login', async () => {
+    const patientDocument = {
+      email: 'user@example.com',
+      isEmailVerified: false,
+      emailVerificationTokenHash: 'stored-hash',
+      emailVerificationExpiresAt: new Date('2030-01-01T00:00:00.000Z'),
+      save: jest.fn().mockResolvedValue(undefined)
+    };
+
+    mockPatientFindOne.mockReturnValue({
+      select: jest.fn().mockResolvedValue(patientDocument)
+    });
+
+    const response = await request(app).get('/users/verify-email').query({ token: 'plain-token' });
+
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toBe(
+      'http://localhost:5173/login?verification=success&email=user%40example.com'
+    );
+    expect(patientDocument.isEmailVerified).toBe(true);
+    expect(patientDocument.emailVerificationTokenHash).toBeUndefined();
+    expect(patientDocument.emailVerificationExpiresAt).toBeUndefined();
+    expect(patientDocument.save).toHaveBeenCalled();
+  });
+
+  test('resend verification email issues a fresh link for unverified users', async () => {
+    const patientDocument = {
+      name: 'Test User',
+      email: 'user@example.com',
+      isEmailVerified: false,
+      save: jest.fn().mockResolvedValue(undefined)
+    };
+
+    mockPatientFindOne.mockReturnValue({
+      select: jest.fn().mockResolvedValue(patientDocument)
+    });
+
+    const response = await request(app)
+      .post('/users/resend-verification')
+      .send({ email: 'user@example.com' });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      success: true,
+      message: 'Verification email sent successfully'
+    });
+    expect(patientDocument.emailVerificationTokenHash).toEqual(expect.any(String));
+    expect(patientDocument.emailVerificationExpiresAt).toBeInstanceOf(Date);
+    expect(patientDocument.save).toHaveBeenCalled();
+    expect(mockSendVerificationEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'user@example.com',
+        name: 'Test User',
+        verificationUrl: expect.stringContaining('/users/verify-email?token=')
+      })
+    );
   });
 
   test('user logout clears the current session cookie', async () => {

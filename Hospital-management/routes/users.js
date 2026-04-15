@@ -10,6 +10,9 @@ const {
 
 router.post('/signup', userController.signup);
 router.post('/login', userLoginLimiter, userController.login);
+router.get('/verify-email', userController.verifyEmail);
+router.post('/verify-email', userController.verifyEmail);
+router.post('/resend-verification', userController.resendVerificationEmail);
 router.get('/session', verifyToken, userController.getSession);
 router.post('/book-appointment', verifyToken, bookingLimiter, userController.bookAppointment);
 router.get('/booking-history', verifyToken, userController.getBookingHistory);

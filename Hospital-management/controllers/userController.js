@@ -15,7 +15,14 @@ const {
 } = require('../config/userAuth');
 const { sendInternalServerError } = require('../utils/apiResponse');
 const {
+  createEmailVerificationToken,
+  hashEmailVerificationToken,
+  isTrustedEmail
+} = require('../utils/emailVerification');
+const { sendVerificationEmail } = require('../utils/mailer');
+const {
   validateBookingPayload,
+  validateEmailAddressPayload,
   validateProfileUpdatePayload,
   validateUserLoginPayload,
   validateUserPasswordChangePayload,
@@ -24,6 +31,33 @@ const {
 
 const USER_CANCELLATION_STATUS = 'Cancelled by User';
 const APPOINTMENT_NON_BLOCKING_STATUSES = ['Cancelled', USER_CANCELLATION_STATUS];
+
+const normalizeBaseUrl = (value = '') => String(value).trim().replace(/\/+$/, '');
+
+const getVerificationUrl = (req, token) =>
+  `${req.protocol}://${req.get('host')}/users/verify-email?token=${encodeURIComponent(token)}`;
+
+const getFrontendLoginUrl = (params = {}) => {
+  const baseUrl = normalizeBaseUrl(process.env.FRONTEND_ORIGIN || 'http://localhost:5173');
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      searchParams.set(key, String(value));
+    }
+  });
+
+  const queryString = searchParams.toString();
+  return `${baseUrl}/login${queryString ? `?${queryString}` : ''}`;
+};
+
+const sendVerificationEmailForPatient = async (req, patient, token) => {
+  await sendVerificationEmail({
+    email: patient.email,
+    name: patient.name,
+    verificationUrl: getVerificationUrl(req, token)
+  });
+};
 
 exports.signup = async (req, res) => {
   try {
@@ -37,39 +71,76 @@ exports.signup = async (req, res) => {
 
     const { name, email, phone, age, gender, address, password } = validation.data;
 
-    const existingPatient = await Patient.findOne({ email });
-    if (existingPatient) {
+    if (!isTrustedEmail(email)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Please sign up with a trusted email address'
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const verification = createEmailVerificationToken();
+
+    const existingPatient = await Patient.findOne({ email }).select(
+      'name email phone age gender address isEmailVerified +emailVerificationTokenHash +emailVerificationExpiresAt'
+    );
+
+    if (existingPatient && existingPatient.isEmailVerified) {
       return res.status(400).json({
         success: false,
         message: 'Email already registered'
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    let patient;
+    let statusCode = 201;
+    let message = 'Patient registered successfully. Please verify your email before logging in.';
 
-    const newPatient = new Patient({
-      name,
-      email,
-      phone,
-      age,
-      gender: gender || 'Other',
-      address: address || '',
-      password: hashedPassword
-    });
+    if (existingPatient) {
+      existingPatient.name = name;
+      existingPatient.phone = phone;
+      existingPatient.age = age;
+      existingPatient.gender = gender || 'Other';
+      existingPatient.address = address || '';
+      existingPatient.password = hashedPassword;
+      existingPatient.isEmailVerified = false;
+      existingPatient.emailVerificationTokenHash = verification.tokenHash;
+      existingPatient.emailVerificationExpiresAt = verification.expiresAt;
 
-    await newPatient.save();
+      patient = existingPatient;
+      statusCode = 200;
+      message = 'Account exists but is not verified. A new verification email has been sent.';
+    } else {
+      patient = new Patient({
+        name,
+        email,
+        phone,
+        age,
+        gender: gender || 'Other',
+        address: address || '',
+        password: hashedPassword,
+        isEmailVerified: false,
+        emailVerificationTokenHash: verification.tokenHash,
+        emailVerificationExpiresAt: verification.expiresAt
+      });
+    }
 
-    return res.status(201).json({
+    await patient.save();
+    await sendVerificationEmailForPatient(req, patient, verification.token);
+
+    return res.status(statusCode).json({
       success: true,
-      message: 'Patient registered successfully',
+      message,
+      requiresEmailVerification: true,
       patient: {
-        id: newPatient._id,
-        name: newPatient.name,
-        email: newPatient.email,
-        phone: newPatient.phone,
-        age: newPatient.age,
-        gender: newPatient.gender,
-        address: newPatient.address
+        id: patient._id,
+        name: patient.name,
+        email: patient.email,
+        phone: patient.phone,
+        age: patient.age,
+        gender: patient.gender,
+        address: patient.address,
+        isEmailVerified: patient.isEmailVerified
       }
     });
   } catch (error) {
@@ -90,7 +161,9 @@ exports.login = async (req, res) => {
 
     const { email, password } = validation.data;
 
-    const patient = await Patient.findOne({ email }).select('+password isBlocked');
+    const patient = await Patient.findOne({ email }).select(
+      'name email phone age gender address isEmailVerified isBlocked +password'
+    );
     if (!patient) {
       return res.status(401).json({
         success: false,
@@ -105,11 +178,25 @@ exports.login = async (req, res) => {
       });
     }
 
+    if (!isTrustedEmail(patient.email)) {
+      return res.status(403).json({
+        success: false,
+        message: 'This email domain is not allowed to access the website'
+      });
+    }
+
     const isPasswordValid = await bcrypt.compare(password, patient.password);
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
+      });
+    }
+
+    if (!patient.isEmailVerified) {
+      return res.status(403).json({
+        success: false,
+        message: 'Please verify your email before logging in'
       });
     }
 
@@ -133,6 +220,120 @@ exports.login = async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     return sendInternalServerError(res, 'Error during login');
+  }
+};
+
+exports.verifyEmail = async (req, res) => {
+  try {
+    const token = String(req.query.token || req.body.token || '').trim();
+    const isBrowserRequest = req.method === 'GET';
+
+    const redirectToLogin = (params) => res.redirect(getFrontendLoginUrl(params));
+
+    if (!token) {
+      if (isBrowserRequest) {
+        return redirectToLogin({
+          verification: 'failed',
+          reason: 'missing_token'
+        });
+      }
+
+      return res.status(400).json({
+        success: false,
+        message: 'Verification token is required'
+      });
+    }
+
+    const patient = await Patient.findOne({
+      emailVerificationTokenHash: hashEmailVerificationToken(token),
+      emailVerificationExpiresAt: { $gt: new Date() }
+    }).select('+emailVerificationTokenHash +emailVerificationExpiresAt');
+
+    if (!patient) {
+      if (isBrowserRequest) {
+        return redirectToLogin({
+          verification: 'failed',
+          reason: 'invalid_or_expired'
+        });
+      }
+
+      return res.status(400).json({
+        success: false,
+        message: 'Verification link is invalid or has expired'
+      });
+    }
+
+    patient.isEmailVerified = true;
+    patient.emailVerificationTokenHash = undefined;
+    patient.emailVerificationExpiresAt = undefined;
+    await patient.save();
+
+    if (isBrowserRequest) {
+      return redirectToLogin({
+        verification: 'success',
+        email: patient.email
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Email verified successfully. You can now log in.'
+    });
+  } catch (error) {
+    console.error('Verify email error:', error);
+    return sendInternalServerError(res, 'Error verifying email');
+  }
+};
+
+exports.resendVerificationEmail = async (req, res) => {
+  try {
+    const validation = validateEmailAddressPayload(req.body);
+    if (!validation.ok) {
+      return res.status(400).json({
+        success: false,
+        message: validation.message
+      });
+    }
+
+    const { email } = validation.data;
+    const patient = await Patient.findOne({ email }).select(
+      'name email isEmailVerified +emailVerificationTokenHash +emailVerificationExpiresAt'
+    );
+
+    if (!patient) {
+      return res.status(200).json({
+        success: true,
+        message: 'If an account exists for this email, a verification link has been sent.'
+      });
+    }
+
+    if (!isTrustedEmail(patient.email)) {
+      return res.status(403).json({
+        success: false,
+        message: 'This email domain is not allowed to access the website'
+      });
+    }
+
+    if (patient.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is already verified'
+      });
+    }
+
+    const verification = createEmailVerificationToken();
+    patient.emailVerificationTokenHash = verification.tokenHash;
+    patient.emailVerificationExpiresAt = verification.expiresAt;
+    await patient.save();
+    await sendVerificationEmailForPatient(req, patient, verification.token);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Verification email sent successfully'
+    });
+  } catch (error) {
+    console.error('Resend verification email error:', error);
+    return sendInternalServerError(res, 'Error sending verification email');
   }
 };
 

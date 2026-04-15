@@ -48,7 +48,7 @@ function handleRegister(e) {
   };
   api.post(`${API_BASE}/users/signup`, user)
   .then (() => {
-    navigate("/login");
+    navigate(`/login?registered=1&email=${encodeURIComponent(email)}`);
   }).catch((error) => {
     setError(error.response?.data?.message || "Registration failed");
     console.error("Registration error:", error);
