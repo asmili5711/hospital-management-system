@@ -2,6 +2,11 @@ const nodemailer = require('nodemailer');
 
 let cachedTransporter;
 
+const getPositiveNumber = (value, fallback) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
 const createTransporter = () => {
   if (process.env.NODE_ENV === 'test') {
     return nodemailer.createTransport({
@@ -22,6 +27,9 @@ const createTransporter = () => {
     host,
     port,
     secure: port === 465,
+    connectionTimeout: getPositiveNumber(process.env.SMTP_CONNECTION_TIMEOUT_MS, 10000),
+    greetingTimeout: getPositiveNumber(process.env.SMTP_GREETING_TIMEOUT_MS, 10000),
+    socketTimeout: getPositiveNumber(process.env.SMTP_SOCKET_TIMEOUT_MS, 15000),
     auth: {
       user,
       pass

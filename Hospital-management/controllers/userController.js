@@ -59,6 +59,18 @@ const sendVerificationEmailForPatient = async (req, patient, token) => {
   });
 };
 
+const dispatchVerificationEmailInBackground = (req, patient, token) => {
+  Promise.resolve()
+    .then(() => sendVerificationEmailForPatient(req, patient, token))
+    .catch((error) => {
+      console.error('Verification email delivery error:', {
+        patientId: String(patient._id),
+        email: patient.email,
+        message: error && error.message ? error.message : error
+      });
+    });
+};
+
 exports.signup = async (req, res) => {
   try {
     const validation = validateUserSignupPayload(req.body);
@@ -126,7 +138,7 @@ exports.signup = async (req, res) => {
     }
 
     await patient.save();
-    await sendVerificationEmailForPatient(req, patient, verification.token);
+    dispatchVerificationEmailInBackground(req, patient, verification.token);
 
     return res.status(statusCode).json({
       success: true,
