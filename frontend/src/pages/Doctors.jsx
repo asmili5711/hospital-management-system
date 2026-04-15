@@ -13,7 +13,6 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import api from "../utils/api";
-import { API_BASE } from "../utils/config";
 import { useEffect, useState } from "react";
 
 
@@ -29,7 +28,7 @@ export default function Doctors() {
     setLoading(true);
     setError("");
     api
-      .get(`${API_BASE}/doctors`, {
+      .get("/doctors", {
         params: { page, limit, search: search || undefined }
       })
       .then((res) => {
@@ -41,7 +40,7 @@ export default function Doctors() {
         setError(err.response?.data?.message || "Failed to load doctors")
       )
       .finally(() => setLoading(false));
-  }, [API_BASE, page, limit, search]);
+  }, [page, limit, search]);
 
   const handlePrev = () => setPage((p) => Math.max(1, p - 1));
   const handleNext = () => setPage((p) => Math.min(totalPages, p + 1));

@@ -2,7 +2,6 @@ import { Box, TextField, Button, Typography, Paper, Alert } from "@mui/material"
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import api from "../utils/api";
-import { API_BASE } from "../utils/config";
 
 export default function Register() {
  const[name,setName] = useState("");
@@ -46,7 +45,7 @@ function handleRegister(e) {
     phone,
     password
   };
-  api.post(`${API_BASE}/users/signup`, user)
+  api.post("/users/signup", user)
   .then (() => {
     navigate(`/login?registered=1&email=${encodeURIComponent(email)}`);
   }).catch((error) => {

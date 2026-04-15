@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Box, CircularProgress } from "@mui/material";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import api from "../utils/api";
-import { API_BASE } from "../utils/config";
 
 export default function ProtectedRoute() {
   const loc = useLocation();
@@ -12,7 +11,7 @@ export default function ProtectedRoute() {
     let isMounted = true;
 
     api
-      .get(`${API_BASE}/users/session`)
+      .get("/users/session")
       .then(() => {
         if (isMounted) setStatus("authenticated");
       })

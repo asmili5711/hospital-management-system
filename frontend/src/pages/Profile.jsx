@@ -13,7 +13,6 @@ import {
   MenuItem,
 } from "@mui/material";
 import api from "../utils/api";
-import { API_BASE } from "../utils/config";
 
 const formatDate = (dateStr) =>
   new Date(dateStr).toLocaleString(undefined, {
@@ -63,7 +62,7 @@ export default function Profile() {
     setLoading(true);
     setError("");
     api
-      .get(`${API_BASE}/users/profile`)
+      .get("/users/profile")
       .then((res) => {
         const data = res.data?.profile || null;
         setProfile(data);
@@ -88,7 +87,7 @@ export default function Profile() {
 
   useEffect(() => {
     fetchProfile();
-  }, [API_BASE]);
+  }, []);
 
   const handleChange = (field) => (e) => {
     const value = e.target.value;
@@ -136,7 +135,7 @@ export default function Profile() {
     };
 
     api
-      .put(`${API_BASE}/users/profile`, payload)
+      .put("/users/profile", payload)
       .then((res) => {
         const data = res.data?.profile;
         setProfile(data);
@@ -190,7 +189,7 @@ export default function Profile() {
     }
     setSavingPassword(true);
     api
-      .post(`${API_BASE}/users/profile/change-password`, {
+      .post("/users/profile/change-password", {
         oldPassword: passwordForm.oldPassword,
         newPassword: passwordForm.newPassword,
       })

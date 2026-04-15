@@ -13,7 +13,6 @@ import {
   Grid,
 } from "@mui/material";
 import api from "../utils/api";
-import { API_BASE } from "../utils/config";
 
 // Appointment booking form aligned with backend POST /users/book-appointment
 export default function Appoinment() {
@@ -30,11 +29,11 @@ export default function Appoinment() {
   useEffect(() => {
     setLoadingDoctors(true);
     api
-      .get(`${API_BASE}/doctors`, { params: { limit: 50 } })
+      .get("/doctors", { params: { limit: 50 } })
       .then((res) => setDoctors(res.data?.doctors || []))
       .catch(() => setError("Failed to load doctors"))
       .finally(() => setLoadingDoctors(false));
-  }, [API_BASE]);
+  }, []);
 
   const minDateTime = useMemo(() => {
     const now = new Date();
@@ -71,7 +70,7 @@ export default function Appoinment() {
 
     setSubmitting(true);
     try {
-      await api.post(`${API_BASE}/users/book-appointment`, {
+      await api.post("/users/book-appointment", {
         doctorId,
         date: new Date(dateTime).toISOString(),
         reason,

@@ -15,7 +15,6 @@ import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
-import { API_BASE } from "../utils/config";
 
 const followersData = [
   { day: "Mon", value: 120 },
@@ -58,7 +57,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     api
-      .get(`${API_BASE}/users/profile`)
+      .get("/users/profile")
       .then((res) => {
         const profile = res.data?.profile;
         const name = profile?.name;
@@ -70,14 +69,14 @@ export default function Dashboard() {
       .catch(() => {
         // Silently fail; keep cached name if any
       });
-  }, [API_BASE]);
+  }, []);
 
   useEffect(() => {
     setAppointmentsLoading(true);
     setAppointmentsError("");
 
     api
-      .get(`${API_BASE}/users/booking-history`)
+      .get("/users/booking-history")
       .then((res) => {
         const list = res.data?.appointments || [];
         const completedCount = list.filter((item) => item.status === "Completed").length;
@@ -99,11 +98,11 @@ export default function Dashboard() {
         setAppointments([]);
       })
       .finally(() => setAppointmentsLoading(false));
-  }, [API_BASE]);
+  }, []);
 
   useEffect(() => {
     api
-      .get(`${API_BASE}/doctors`, { params: { page: 1, limit: 1 } })
+      .get("/doctors", { params: { page: 1, limit: 1 } })
       .then((res) => {
         const totalDoctors = res.data?.pagination?.totalItems;
         setDoctorsCount(Number.isFinite(totalDoctors) ? totalDoctors : 0);
@@ -111,7 +110,7 @@ export default function Dashboard() {
       .catch(() => {
         setDoctorsCount(0);
       });
-  }, [API_BASE]);
+  }, []);
 
   const formatApptDate = (dateStr) => {
     const d = new Date(dateStr);

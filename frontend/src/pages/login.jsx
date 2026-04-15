@@ -2,7 +2,6 @@ import { Box, TextField, Button, Typography, Paper, Alert } from "@mui/material"
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "../utils/api";
-import { API_BASE } from "../utils/config";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -66,7 +65,7 @@ export default function Login() {
     }
 
     api
-      .post(`${API_BASE}/users/login`, { email, password })
+      .post("/users/login", { email, password })
       .then(() => {
         navigate("/app/dashboard");
       })

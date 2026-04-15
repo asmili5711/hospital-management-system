@@ -9,7 +9,6 @@ import PersonIcon from "@mui/icons-material/Person";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import api from "../utils/api";
-import { API_BASE } from "../utils/config";
 
 const sidebarLinks = [
   { label: "Dashboard", path: "/app/dashboard", icon: <DashboardIcon fontSize="small" /> },
@@ -35,7 +34,7 @@ export default function DashboardLayout() {
 
   const handleLogout = async () => {
     try {
-      await api.post(`${API_BASE}/users/logout`);
+      await api.post("/users/logout");
     } catch (error) {
       console.error("Logout error:", error);
     } finally {

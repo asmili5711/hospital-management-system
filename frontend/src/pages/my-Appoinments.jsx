@@ -21,7 +21,6 @@ import DoNotDisturbAltIcon from "@mui/icons-material/DoNotDisturbAlt";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import api from "../utils/api";
-import { API_BASE } from "../utils/config";
 import { keyframes } from "@mui/system";
 
 const spin = keyframes`
@@ -40,7 +39,7 @@ export default function MyAppoinments() {
     setLoading(true);
     setError("");
     api
-      .get(`${API_BASE}/users/booking-history`)
+      .get("/users/booking-history")
       .then((res) => {
         setAppointments(res.data?.appointments || []);
       })
@@ -53,7 +52,7 @@ export default function MyAppoinments() {
 
   useEffect(() => {
     fetchAppointments();
-  }, [API_BASE]);
+  }, []);
 
   const isUpcoming = (dateStr) => {
     const d = new Date(dateStr);
@@ -75,7 +74,7 @@ export default function MyAppoinments() {
     setError("");
     setActionMessage("");
     try {
-      await api.put(`${API_BASE}/users/appointments/${id}/cancel`, {});
+      await api.put(`/users/appointments/${id}/cancel`, {});
       setActionMessage("Appointment cancelled.");
       fetchAppointments();
     } catch (err) {
